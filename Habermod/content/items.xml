@@ -1,5 +1,5 @@
 <items gfxroot="gfx/items/" version="1">
 	<passive description="What a bad hax" name="Beast Boost" gfx="collectibles_beast_boost.png" />
 	<active description="Might your life lose its sense" name="Cuakker" maxcharges="0" gfx="collectibles_cuaker.png" />
-	<passive description="Holly trolly" name="Little Horn's Head" gfx="collectibles_horns_head.png" cache="range damage shotspeed" />
+	<passive description="Holly trolly" name="Little Horn's Head" gfx="collectibles_horns_head.png" cache="damage shotspeed" />
 </items>
