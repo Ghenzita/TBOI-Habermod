@@ -292,30 +292,6 @@ end
 
 mod:AddCallback (ModCallbacks.MC_POST_UPDATE, beastboost_passive) 
 
---stats update
-function funct:onCache (player, cacheFlag)
-	if cacheFlag == CacheFlag.CACHE_SPEED then
-		if player:HasCollectible (beastboost_item) and resetstats ~= 1 then
-			player.MoveSpeed = player.MoveSpeed + (0.05 * mscounter * (stagecounter - 0.1))*(1+multiplier/10)			
-		end
-	end
-	
-	if cacheFlag == CacheFlag.CACHE_DAMAGE then
-		if player:HasCollectible (beastboost_item) and resetstats ~= 1 then
-			player.Damage = player.Damage + (0.2 * dmgcounter * stagecounter)*(1+multiplier/10)		
-		end
-	end
-	
-	if cacheFlag == CacheFlag.CACHE_LUCK then
-		if player:HasCollectible (beastboost_item) and resetstats ~= 1 then
-			player.Luck = player.Luck + (0.1 * luckcounter * stagecounter)*(1+multiplier/10)
-		end
-	end
-end
-
-mod:AddCallback (ModCallbacks.MC_EVALUATE_CACHE, funct.onCache)
-
-
 ----------------------
 --LITTLE HORN'S HEAD--
 ----------------------
@@ -330,6 +306,9 @@ function funct:hornshead_passive ()
 	local game = Game()
 	local room = game:GetRoom()
 	
+	if statshorn == nil then
+		statshorn = 0
+	end
 	
 	if player:HasCollectible(hornshead_item) then
 		for _, tear in pairs(Isaac.GetRoomEntities()) do
@@ -355,13 +334,7 @@ mod:AddCallback (ModCallbacks.MC_POST_UPDATE, funct.hornshead_passive)
 
 function funct:onCacheHorn (player, cacheFlag)
 	if cacheFlag == CacheFlag.CACHE_DAMAGE then
-		if player:HasCollectible(hornshead_item) then
-			player.Damage = player.Damage * 2 + 7.5
-			player.MaxFireDelay = player.MaxFireDelay * 2 + 10
-			if player.MaxFireDelay  <= 17 then
-				player.MaxFireDelay = 17
-			end
-		end
+		
 	end
 
 	if cacheFlag == CacheFlag.CACHE_SHOTSPEED  then
@@ -372,6 +345,11 @@ function funct:onCacheHorn (player, cacheFlag)
 end
 
 mod:AddCallback (ModCallbacks.MC_EVALUATE_CACHE, funct.onCacheHorn)
+
+
+
+
+
 --Pedestals
 function funct:SpawnItems ()
 local game = Game()
@@ -383,3 +361,36 @@ local game = Game()
 end
 
 mod:AddCallback (ModCallbacks.MC_POST_UPDATE, funct.SpawnItems)
+
+
+--stats update
+function funct:onCache (player, cacheFlag)
+	if cacheFlag == CacheFlag.CACHE_SPEED then
+		if player:HasCollectible (beastboost_item) and resetstats ~= 1 then
+			player.MoveSpeed = player.MoveSpeed + (0.05 * mscounter * (stagecounter - 0.1))*(1+multiplier/10)			
+		end
+	end
+	
+	if cacheFlag == CacheFlag.CACHE_DAMAGE then
+		if player:HasCollectible (beastboost_item) and resetstats ~= 1 then
+			player.Damage = player.Damage + (0.2 * dmgcounter * stagecounter)*(1+multiplier/10)		
+		end
+		
+		if player:HasCollectible(hornshead_item) then
+			if statshorn == 0 then
+				player.MaxFireDelay = player.MaxFireDelay + 20
+				statshorn = 1
+			end
+			player.Damage = player.Damage * 2 + 7.5
+			
+		end
+	end
+	
+	if cacheFlag == CacheFlag.CACHE_LUCK then
+		if player:HasCollectible (beastboost_item) and resetstats ~= 1 then
+			player.Luck = player.Luck + (0.1 * luckcounter * stagecounter)*(1+multiplier/10)
+		end
+	end
+end
+
+mod:AddCallback (ModCallbacks.MC_EVALUATE_CACHE, funct.onCache)
