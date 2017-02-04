@@ -332,20 +332,46 @@ function funct:hornshead_passive ()
 	
 	
 	if player:HasCollectible(hornshead_item) then
-    for _, tear in pairs(Isaac.GetRoomEntities()) do
-        if tear.Type == EntityType.ENTITY_TEAR and tear.Variant ~= HORNS_HEAD_VARIANT then
-            tear:ToTear():ChangeVariant(HORNS_HEAD_VARIANT)
-			tear:ToTear().TearFlags = tear:ToTear().TearFlags | TearFlags.FLAG_SPECTRAL
-			tear:ToTear().TearFlags = tear:ToTear().TearFlags | TearFlags.FLAG_PIERCING
-			tear:ToTear().TearFlags = tear:ToTear().TearFlags | TearFlags.FLAG_STRANGE_ATTRACTOR
-        end
-    end
-end
+		for _, tear in pairs(Isaac.GetRoomEntities()) do
+			if tear.Type == EntityType.ENTITY_TEAR and tear.Variant ~= HORNS_HEAD_VARIANT then
+				tear:ToTear():ChangeVariant(HORNS_HEAD_VARIANT)
+				tear:ToTear().FallingSpeed = 0
+				tear:ToTear().FallingAcceleration = 0
+				tear:ToTear().TearFlags = tear:ToTear().TearFlags | TearFlags.FLAG_SPECTRAL
+				tear:ToTear().TearFlags = tear:ToTear().TearFlags | TearFlags.FLAG_PIERCING
+				tear:ToTear().TearFlags = tear:ToTear().TearFlags | TearFlags.FLAG_STRANGE_ATTRACTOR
+			end
+			if tear.Type == EntityType.ENTITY_TEAR then
+				tear:ToTear().FallingSpeed = 0
+				tear:ToTear().FallingAcceleration = 0
+			end
+		end
+	end
 	
 
 end
 
 mod:AddCallback (ModCallbacks.MC_POST_UPDATE, funct.hornshead_passive)
+
+function funct:onCacheHorn (player, cacheFlag)
+	if cacheFlag == CacheFlag.CACHE_DAMAGE then
+		if player:HasCollectible(hornshead_item) then
+			player.Damage = player.Damage * 2 + 7.5
+			player.MaxFireDelay = player.MaxFireDelay * 2 + 10
+			if player.MaxFireDelay  <= 17 then
+				player.MaxFireDelay = 17
+			end
+		end
+	end
+
+	if cacheFlag == CacheFlag.CACHE_SHOTSPEED  then
+		if player:HasCollectible(hornshead_item) then
+			player.ShotSpeed = player.ShotSpeed / 2
+		end
+	end
+end
+
+mod:AddCallback (ModCallbacks.MC_EVALUATE_CACHE, funct.onCacheHorn)
 --Pedestals
 function funct:SpawnItems ()
 local game = Game()
