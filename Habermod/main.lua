@@ -64,9 +64,16 @@ TearFlags = {
 -----------
 --Cuakker--
 -----------
-local cuakker_item = Isaac.GetItemIdByName ("Cuakker")	--conseguir ID del objeto mediante el nombre del objeto
-local customfamiliar =  Isaac.GetEntityTypeByName("testfamiliar")	--conseguir entidad mediante el nombre del familiar
-local player = Isaac.GetPlayer (0)	--player var
+local cuakker_item = Isaac.GetItemIdByName ("Cuakker")	
+local customfamiliar =  Isaac.GetEntityTypeByName("testfamiliar")	
+local player = Isaac.GetPlayer (0)	
+local Dir = {
+	[Direction.UP] = 270,
+	[Direction.DOWN] = 90,
+	[Direction.LEFT] = 180,
+	[Direction.RIGHT] = 0,
+}
+local LASER_THIN_RED = 1
 
 local function RealignFamiliars()
 	local lastfam = nil
@@ -97,19 +104,24 @@ function funct:use_cuaker ()
 	end
 end
 
-function funct:familiarUpdate (customfamiliar)	--función update del familiar
-	local player = Isaac.GetPlayer (0)					--player var
-	local tearshot = false								--Forma de desbuggearlo
-	local firedir = player:GetFireDirection()			--Dirección del disparo de Isaac
-	local headdir = player:GetHeadDirection ()			--Dirección de la cabeza de Isaac
-	local sprite = customfamiliar:GetSprite ()			--Sprite del familiar
-	local playerfiredelay = player.MaxFireDelay	--Cooldown del familiar
+function funct:familiarUpdate (customfamiliar)	
+	local player = Isaac.GetPlayer (0)					
+	local tearshot = false								
+	local firedir = player:GetFireDirection()			
+	local headdir = player:GetHeadDirection ()			
+	local sprite = customfamiliar:GetSprite ()			
+	local playerfiredelay = player.MaxFireDelay	
 	local game = Game()
 	local room = game:GetRoom()
+	local data = customfamiliar:GetData()
+	if charge == nil then charge = 0 end
+	if cooldown == nil then cooldown = 0 end
+	local brimstonecharge = player.MaxFireDelay
+	local brimstonecooldown = player.MaxFireDelay - 1
 	
-	--sinergias
+	
 	hasKnife = player:HasCollectible(CollectibleType.COLLECTIBLE_MOMS_KNIFE)
-	hasTechnology = player:HasCollectible(CollectibleType.COLLECTIBLE_TECHNOLOGY)	--hecha
+	hasTechnology = player:HasCollectible(CollectibleType.COLLECTIBLE_TECHNOLOGY)	
 	hasTechnology2 = player:HasCollectible(CollectibleType.COLLECTIBLE_TECHNOLOGY_2)
 	hasTech5 = player:HasCollectible(CollectibleType.COLLECTIBLE_TECH_5)
 	hasTechX = player:HasCollectible(CollectibleType.COLLECTIBLE_TECH_X)
@@ -121,24 +133,24 @@ function funct:familiarUpdate (customfamiliar)	--función update del familiar
 	hasMonstrosLung = player:HasCollectible(CollectibleType.COLLECTIBLE_MONSTROS_LUNG)
 	
 	
-	customfamiliar:FollowParent() --seguir al parent, establecido en realignfamiliars
+	customfamiliar:FollowParent() 
 	
-	--Disparar lágrimas
+	
 	if player:HasCollectible(cuakker_item) then
 		if player.FrameCount % playerfiredelay == 0 then
 			if hasKnife == false and hasTechnology == false and hasTech5 == false and hasTechX == false and hasBrimstone == false and has2020 == false and hasTripleShot == false and hasQuadShot == false and hasDrFetus == false and hasMonstrosLung == false then
 				if tearshot == false then
 					if firedir == 0 then
-							player:FireTear (customfamiliar.Position, Vector (-10,0), true, false, true)  --Disparo a la derecha
+							player:FireTear (customfamiliar.Position, Vector (-10,0), true, false, true)  
 							tearshot=false
 					elseif firedir == 1 then
-							player:FireTear (customfamiliar.Position, Vector (0,-10), true, false, true)  --Disparo arriba
+							player:FireTear (customfamiliar.Position, Vector (0,-10), true, false, true)  
 							tearshot=false
 					elseif firedir == 2 then
-							player:FireTear (customfamiliar.Position, Vector (10,0), true, false, true)   --Disparo a la izquierda
+							player:FireTear (customfamiliar.Position, Vector (10,0), true, false, true)   
 							tearshot=false
 					elseif firedir == 3 then
-							player:FireTear (customfamiliar.Position, Vector (0,10), true, false, true)   --Disparo abajo
+							player:FireTear (customfamiliar.Position, Vector (0,10), true, false, true)   
 							tearshot=false
 					end
 				end
@@ -178,14 +190,75 @@ function funct:familiarUpdate (customfamiliar)	--función update del familiar
 				end
 			end
 		end
+		
+		
+		--Brimstone
+		if hasBrimstone == true then		
+			if firedir == Direction.NO_DIRECTION or cooldown > 0 then
+				if charge == brimstonecharge then
+					customfamiliar:SetColor(Color(1,1,1,1,0,0,0),0,0,false,false)
+					local cooldown = brimstonecooldown
+					local charge = 0
+					
+					local laser = EntityLaser.ShootAngle(LASER_THIN_RED, customfamiliar.Position, Dir[data.firedir], 13, Vector(0,0), customfamiliar)
+					laser.TearFlags = player.TearFlags
+					laser.CollisionDamage = player.Damage
+					
+					if firedir == 0 then
+						sprite:Play("ShootRight", false)
+					elseif firedir == 1 then
+						sprite:Play("ShootUp", false)
+					elseif firedir == 2 then
+						sprite:Play("ShootLeft", false)
+					elseif firedir == 3 then
+						sprite:Play("ShootDown", false)
+					end
+				elseif cooldown == 0 then
+				sprite:Play("FloatDown", false)
+				end
+				
+				if cooldown > 0 then cooldown = cooldown - 1 end
+			else
+				if charge < brimstonecharge then
+					charge = charge + 1
+					if firedir == 0 then
+						sprite:Play("ChargeRight", false)
+					elseif firedir == 1 then
+						sprite:Play("ChargeUp", false)
+					elseif firedir == 2 then
+						sprite:Play("ChargeLeft", false)
+					elseif firedir == 3 then
+						sprite:Play("ChargeDown", false)
+					end
+					
+				else
+					if firedir == 0 then
+						sprite:SetFrame("ChargeRight", charge)
+					elseif firedir == 1 then
+						sprite:SetFrame("ChargeUp", charge)
+					elseif firedir == 2 then
+						sprite:SetFrame("ChargeLeft", charge)
+					elseif firedir == 3 then
+						sprite:SetFrame("ChargeDown", charge)
+					end
+					
+					if customfamiliar.FrameCount % 4 == 0 then
+						customfamiliar:SetColor(Color(1,0.6,0.6,1,20,0,0),0,0, false, false)
+					elseif customfamiliar.FrameCount % 4 == 2 then
+						customfamiliar:SetColor(Color(1,1,1,1,0,0,0),0,0,false,false)
+					end
+				end
+				data.firedir = firedir
+			end
+		end
 	end
 	
-	--animación flotar cuando no dispara
+	
 	if sprite:IsFinished("ShootRight") or sprite:IsFinished("ShootUp") or sprite:IsFinished("ShootDown") or sprite:IsFinished("ShootLeft") then
 		sprite:Play("FloatDown", false)
 	end
 	
-	--animación disparo
+	
 	if firedir == 0 then
 		sprite:Play("ShootRight", false)
 	elseif firedir == 1 then
@@ -196,22 +269,22 @@ function funct:familiarUpdate (customfamiliar)	--función update del familiar
 		sprite:Play("ShootDown", false)
 	end
 	
-	--eliminar familiar al entrar en una sala
+	
 	if room:GetFrameCount() == 1 then
 		customfamiliar:Remove()
 		RealignFamiliars()
 	end
-		
 end
 
-function funct:familiarsCache (player, cacheFlag)	--realinear familiares al coger un nuevo familiar
+
+function funct:familiarsCache (player, cacheFlag)	
 	if cacheFlag == CacheFlag.CACHE_FAMILIARS then
 		RealignFamiliars()
 	end
 end
 
-mod:AddCallback (ModCallbacks.MC_USE_ITEM, funct.use_cuaker, cuakker_item) --Callback spawnear familiar activo
-mod:AddCallback (ModCallbacks.MC_FAMILIAR_UPDATE, funct.familiarUpdate, 666) --Callback update del familiar
+mod:AddCallback (ModCallbacks.MC_USE_ITEM, funct.use_cuaker, cuakker_item) 
+mod:AddCallback (ModCallbacks.MC_FAMILIAR_UPDATE, funct.familiarUpdate, 666) 
 mod:AddCallback (ModCallbacks.MC_EVALUATE_CACHE, funct.familiarsCache)
 
 
