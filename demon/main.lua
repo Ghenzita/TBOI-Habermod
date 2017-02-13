@@ -74,6 +74,7 @@ local player = Isaac.GetPlayer(0);
 	if player:GetPlayerType() == char then
 		if Input.IsActionTriggered(ButtonAction.ACTION_DROP, 0) then
 			if isHuman == 1 then
+				redhp_human = player:GetHearts()
 				isHuman = 0
 				player:AddMaxHearts (-6)
 				player:AddSoulHearts (soulhearts)
@@ -83,6 +84,7 @@ local player = Isaac.GetPlayer(0);
 				soulhearts = player:GetSoulHearts()
 				player:AddSoulHearts (-soulhearts)
 				player:AddMaxHearts (6)
+				player:AddHearts (redhp_human)
 			end
 		end
 	end
