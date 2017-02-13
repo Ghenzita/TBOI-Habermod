@@ -1,9 +1,10 @@
 local mod = RegisterMod("demon", 1)
 local funct = {}
 
-local char = Isaac.GetPlayerTypeByName("demon")
+local char = Isaac.GetPlayerTypeByName("aamon")
 local soulhearts;
 local isHuman;
+local redhp_human;
 
 function funct:PostPlayerInit (player) 
 	if player:GetPlayerType() == char then --demon init
@@ -24,16 +25,22 @@ function funct:demonUpdate ()
 	
 	if player:GetPlayerType() == char then
 	
+	if isHuman == 0 and player:GetMaxHearts() > 1 then
+		player:AddBlackHearts(player:GetMaxHearts())
+		player:AddMaxHearts (-(player:GetMaxHearts()), false)
+	end
+	
 	--counter for the soul hearts (also works for black hearts)
 		if isHuman == 1 then
 			sh_add = player:GetSoulHearts ()
 			soulhearts = soulhearts + sh_add
 			Isaac.SaveModData(mod, tostring(soulhearts)) 
 			if sh_add > 0 then
-				player:AddSoulHearts (-sh_add)			
+				player:AddBlackHearts (-sh_add)			
 			end
 			--Max hp
 			if player:GetMaxHearts() > 6 then
+				player:AddSoulHearts(player:GetMaxHearts()-6)
 				player:AddMaxHearts (-(player:GetMaxHearts() - 6), false)
 			end
 		end
@@ -68,27 +75,28 @@ if soulhearts == nil then soulhearts = 0 end
 	end
 end
 
-function funct:Transformation()
+function funct:Transformation()	--Transformation trigger
 local player = Isaac.GetPlayer(0);
 
 	if player:GetPlayerType() == char then
-		if Input.IsActionTriggered(ButtonAction.ACTION_DROP, 0) then
-			if isHuman == 1 then
+		if Input.IsActionTriggered(ButtonAction.ACTION_DROP, 0) then	--It is set to the control button so controller players can transform as well
+			if isHuman == 1 then	--if human form
 				redhp_human = player:GetHearts()
 				isHuman = 0
 				player:AddMaxHearts (-6)
-				player:AddSoulHearts (soulhearts)
+				player:AddBlackHearts (soulhearts)
 				soulhearts = 0
-			elseif isHuman == 0 then
+			elseif isHuman == 0 then	--if demon form
 				isHuman = 1
 				soulhearts = player:GetSoulHearts()
-				player:AddSoulHearts (-soulhearts)
+				player:AddBlackHearts (-soulhearts)
 				player:AddMaxHearts (6)
 				player:AddHearts (redhp_human)
 			end
 		end
 	end
 end 
+
 
 
 --Player init

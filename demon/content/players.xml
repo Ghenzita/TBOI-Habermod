@@ -1,5 +1,5 @@
 <players bigportraitroot="gfx/ui/stage/" nameimageroot="gfx/ui/boss/" portraitroot="gfx/ui/boss/" root="gfx/characters/costumes/">
-	<player  bombs="1" hp="6" name="demon" skin="character_demon.png" skinColor="-1"
+	<player  bombs="1" hp="6" name="aamon" skin="character_demon.png" skinColor="-1"
 		portrait="PlayerPortrait_demon.png"
 		nameimage="PlayerName_demon.png"
 		bigportrait="PlayerPortraitBig_demon.png" />

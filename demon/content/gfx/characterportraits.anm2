@@ -1,5 +1,5 @@
 <AnimatedActor>
-	<Info CreatedBy="Unknown" CreatedOn="21-1-2017 20:38:47" Version="10" Fps="30"/>
+	<Info CreatedBy="Unknown" CreatedOn="13/02/2017 16:08:20" Version="11" Fps="30"/>
 	<Content>
 		<Spritesheets>
 			<Spritesheet Path="charactermenu.png" Id="0"/>
@@ -10,8 +10,8 @@
 		<Nulls/>
 		<Events/>
 	</Content>
-	<Animations DefaultAnimation="stephen">
-		<Animation Name="stephen" FrameNum="1" Loop="false">
+	<Animations DefaultAnimation="aamon">
+		<Animation Name="aamon" FrameNum="1" Loop="false">
 			<RootAnimation>
 				<Frame XPosition="0" YPosition="0" XScale="100" YScale="100" Delay="1" Visible="true" RedTint="255" GreenTint="255" BlueTint="255" AlphaTint="255" RedOffset="0" GreenOffset="0" BlueOffset="0" Rotation="0" Interpolated="false"/>
 			</RootAnimation>
