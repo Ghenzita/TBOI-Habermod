@@ -8,33 +8,52 @@ local redhp_human;
 
 function funct:PostPlayerInit (player) 
 	if player:GetPlayerType() == char then --demon init
-		 if Game():GetFrameCount() < 5 then --new run
-			Isaac.RemoveModData(mod)
-			soulhearts = 4
-		else --continued run
-			soulhearts = tonumber(Isaac.LoadModData(mod))
-		end
-	if type(soulhearts) ~= "number" then soulhearts = 0 end 
-	
 	isHuman = 1
     end
 end
 
+function SaveState()
+	local player = Isaac.GetPlayer (0)
+	local SaveData = ""
+	if soulhearts < 10 then
+		SaveData = SaveData .. "0"
+	end
+	SaveData = SaveData .. soulhearts
+	if redhp_human < 10 then
+		SaveData = SaveData .. "0"
+	end
+	SaveData = SaveData .. redhp_human
+	SaveData = SaveData .. isHuman
+	mod:SaveData(SaveData)
+end
+	
 function funct:demonUpdate () 
 	local player = Isaac.GetPlayer (0)
+	local game = Game()
+	
+	if game:GetFrameCount() == 1 then
+		soulhearts = 4
+		redhp_human = 6
+	elseif player.FrameCount == 1 and mod:HasData () then
+		local ModData = mod:LoadData()
+		soulhearts = tonumber (ModData:sub(1,2))
+		redhp_human = tonumber (ModData:sub(3,4))
+		isHuman = tonumber (ModData:sub(5))
+	end
+	
 	
 	if player:GetPlayerType() == char then
 	
-	if isHuman == 0 and player:GetMaxHearts() > 1 then
-		player:AddBlackHearts(player:GetMaxHearts())
-		player:AddMaxHearts (-(player:GetMaxHearts()), false)
-	end
+		if isHuman == 0 and player:GetMaxHearts() > 1 then
+			player:AddBlackHearts(player:GetMaxHearts())
+			player:AddMaxHearts (-(player:GetMaxHearts()), false)
+		end
 	
 	--counter for the soul hearts (also works for black hearts)
 		if isHuman == 1 then
 			sh_add = player:GetSoulHearts ()
 			soulhearts = soulhearts + sh_add
-			Isaac.SaveModData(mod, tostring(soulhearts)) 
+			SaveState()
 			if sh_add > 0 then
 				player:AddBlackHearts (-sh_add)			
 			end
@@ -86,12 +105,14 @@ local player = Isaac.GetPlayer(0);
 				player:AddMaxHearts (-6)
 				player:AddBlackHearts (soulhearts)
 				soulhearts = 0
+				SaveState()
 			elseif isHuman == 0 then	--if demon form
 				isHuman = 1
 				soulhearts = player:GetSoulHearts()
 				player:AddBlackHearts (-soulhearts)
 				player:AddMaxHearts (6)
 				player:AddHearts (redhp_human)
+				SaveState()
 			end
 		end
 	end
