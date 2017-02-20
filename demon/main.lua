@@ -6,6 +6,7 @@ local soulhearts;
 local isHuman;
 local redhp_human;
 
+
 function funct:PostPlayerInit (player) 
 	if player:GetPlayerType() == char then --demon init
 	isHuman = 1
@@ -63,6 +64,10 @@ function funct:demonUpdate ()
 				player:AddMaxHearts (-(player:GetMaxHearts() - 6), false)
 			end
 		end
+		
+		if isHuman == 0 then
+			game:Darken(1, 2)
+		end
 	end
 end
 
@@ -96,6 +101,8 @@ end
 
 function funct:Transformation()	--Transformation trigger
 local player = Isaac.GetPlayer(0);
+local game = Game()
+local SFXManager = SFXManager()
 
 	if player:GetPlayerType() == char then
 		if Input.IsActionTriggered(ButtonAction.ACTION_DROP, 0) then	--It is set to the control button so controller players can transform as well
@@ -105,6 +112,24 @@ local player = Isaac.GetPlayer(0);
 				player:AddMaxHearts (-6)
 				player:AddBlackHearts (soulhearts)
 				soulhearts = 0
+				for _, i in pairs(Isaac.GetRoomEntities()) do
+					if i:IsVulnerableEnemy() then
+						i:AddFear(EntityRef(player), 15)
+					end
+				end
+				
+				local sound_roll = math.random(4)
+				
+				if sound_roll == 1 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_0, 2.0, 0, false, 0.5)
+				elseif sound_roll == 2 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_1, 2.0, 0, false, 0.5)
+				elseif sound_roll == 3 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_2, 2.0, 0, false, 0.5)
+				elseif sound_roll == 4 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_3, 2.0, 0, false, 0.5)
+				end
+				
 				SaveState()
 			elseif isHuman == 0 then	--if demon form
 				isHuman = 1
@@ -112,6 +137,18 @@ local player = Isaac.GetPlayer(0);
 				player:AddBlackHearts (-soulhearts)
 				player:AddMaxHearts (6)
 				player:AddHearts (redhp_human)
+				
+				local sound_roll = math.random(4)
+				if sound_roll == 1 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_0, 2.0, 0, false, 1.2)
+				elseif sound_roll == 2 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_1, 2.0, 0, false, 1.2)
+				elseif sound_roll == 3 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_2, 2.0, 0, false, 1.2)
+				elseif sound_roll == 4 then
+					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_3, 2.0, 0, false, 1.2)
+				end
+				
 				SaveState()
 			end
 		end
