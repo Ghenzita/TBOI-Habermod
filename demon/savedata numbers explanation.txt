@@ -1,0 +1,4 @@
+First two digits = soulhearts counter
+Second two digits = red hp of human form
+Fourth digit = human/demon state
+Fifth digit = red containers

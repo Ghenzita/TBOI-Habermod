@@ -5,13 +5,7 @@ local char = Isaac.GetPlayerTypeByName("aamon")
 local soulhearts;
 local isHuman;
 local redhp_human;
-
-
-function funct:PostPlayerInit (player) 
-	if player:GetPlayerType() == char then --demon init
-	isHuman = 1
-    end
-end
+local max_hp;
 
 function SaveState()
 	local player = Isaac.GetPlayer (0)
@@ -25,6 +19,7 @@ function SaveState()
 	end
 	SaveData = SaveData .. redhp_human
 	SaveData = SaveData .. isHuman
+	SaveData = SaveData .. max_hp
 	mod:SaveData(SaveData)
 end
 	
@@ -35,28 +30,33 @@ function funct:demonUpdate ()
 	if game:GetFrameCount() == 1 then
 		soulhearts = 4
 		redhp_human = 6
-	elseif player.FrameCount == 1 and mod:HasData () then
+		max_hp = 6
+		isHuman = 1
+		mod:RemoveData()
+	elseif player.FrameCount == 1 and mod:HasData() then
 		local ModData = mod:LoadData()
-		soulhearts = tonumber (ModData:sub(1,2))
-		redhp_human = tonumber (ModData:sub(3,4))
-		isHuman = tonumber (ModData:sub(5))
+		soulhearts = tonumber(ModData:sub(1,2))
+		redhp_human = tonumber(ModData:sub(3,4))
+		isHuman = tonumber(ModData:sub(5,5))
+		max_hp = tonumber(ModData:sub(6,6))
 	end
 	
 	
 	if player:GetPlayerType() == char then
 	
+	--hps up when demon
 		if isHuman == 0 and player:GetMaxHearts() > 1 then
 			player:AddBlackHearts(player:GetMaxHearts())
 			player:AddMaxHearts (-(player:GetMaxHearts()), false)
 		end
-	
+		
 	--counter for the soul hearts (also works for black hearts)
 		if isHuman == 1 then
 			sh_add = player:GetSoulHearts ()
 			soulhearts = soulhearts + sh_add
-			SaveState()
 			if sh_add > 0 then
-				player:AddBlackHearts (-sh_add)			
+				player:AddBlackHearts (-sh_add)		
+				SaveState()				
 			end
 			--Max hp
 			if player:GetMaxHearts() > 6 then
@@ -76,7 +76,7 @@ local player = Isaac.GetPlayer (0)
 local game = Game()
 if soulhearts == nil then soulhearts = 0 end
 
-	if player:GetPlayerType() == char then
+	if player:GetPlayerType() == char and isHuman == 1 then
 		local h_hud = Sprite(); h_hud:Load("gfx/ui/hudheart.anm2", true); h_hud:Play("Sprite", true); h_hud.Color = Color(1,1,1,1,0,0,0); h_hud:Render(Vector(130,11), Vector(0,0), Vector(0,0)); --heart sprite
 		
 		if soulhearts < 10 then
@@ -107,19 +107,20 @@ local SFXManager = SFXManager()
 	if player:GetPlayerType() == char then
 		if Input.IsActionTriggered(ButtonAction.ACTION_DROP, 0) then	--It is set to the control button so controller players can transform as well
 			if isHuman == 1 then	--if human form
-				redhp_human = player:GetHearts()
-				isHuman = 0
-				player:AddMaxHearts (-6)
-				player:AddBlackHearts (soulhearts)
-				soulhearts = 0
-				for _, i in pairs(Isaac.GetRoomEntities()) do
+				redhp_human = player:GetHearts()	--store red hp
+				isHuman = 0	--change it to demon form
+				max_hp = player:GetMaxHearts()
+				player:AddMaxHearts (-max_hp)	--delete red containers
+				player:AddBlackHearts (soulhearts)	--add soulhearts
+				soulhearts = 0	--set counter to 0
+				for _, i in pairs(Isaac.GetRoomEntities()) do	--fear
 					if i:IsVulnerableEnemy() then
 						i:AddFear(EntityRef(player), 15)
 					end
 				end
 				
+				--transformation sound
 				local sound_roll = math.random(4)
-				
 				if sound_roll == 1 then
 					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_0, 2.0, 0, false, 0.5)
 				elseif sound_roll == 2 then
@@ -130,14 +131,17 @@ local SFXManager = SFXManager()
 					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_3, 2.0, 0, false, 0.5)
 				end
 				
-				SaveState()
-			elseif isHuman == 0 then	--if demon form
-				isHuman = 1
-				soulhearts = player:GetSoulHearts()
-				player:AddBlackHearts (-soulhearts)
-				player:AddMaxHearts (6)
-				player:AddHearts (redhp_human)
+				game:ShakeScreen (8)	
+				SaveState()	--save data
 				
+			elseif isHuman == 0 then	--if demon form
+				isHuman = 1	--change it to human form
+				soulhearts = player:GetSoulHearts()	--store soulhearts
+				player:AddBlackHearts (-soulhearts)	--delete soulhearts
+				player:AddMaxHearts (max_hp)	--add red containers
+				player:AddHearts (redhp_human)	--add red hp
+				
+				--transformation sound
 				local sound_roll = math.random(4)
 				if sound_roll == 1 then
 					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_0, 2.0, 0, false, 1.2)
@@ -149,7 +153,8 @@ local SFXManager = SFXManager()
 					SFXManager:Play(SoundEffect.SOUND_MONSTER_ROAR_3, 2.0, 0, false, 1.2)
 				end
 				
-				SaveState()
+				game:ShakeScreen (8)	
+				SaveState()	--save data
 			end
 		end
 	end
@@ -157,8 +162,6 @@ end
 
 
 
---Player init
-mod:AddCallback(ModCallbacks.MC_POST_PLAYER_INIT, funct.PostPlayerInit)
 --Counter for soulhearts
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, funct.demonUpdate)
 --Hud
